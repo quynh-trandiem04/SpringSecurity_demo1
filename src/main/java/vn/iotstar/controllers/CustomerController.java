@@ -8,7 +8,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
 import vn.iotstar.entity.Customer;
+
 @RestController
 @EnableMethodSecurity
 public class CustomerController {
@@ -24,19 +26,19 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/all")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')") // Chỉ ADMIN được truy cập
     public ResponseEntity<List<Customer>> getCustomerList() {
-        List<Customer> list = this.customers;
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(this.customers);
     }
 
     @GetMapping("/customer/{id}")
-    @PreAuthorize("hasAuthority('ROLE_USER')")
-    public ResponseEntity<Customer> getCustomerList(@PathVariable String id) {
-        List<Customer> customers = this.customers.stream()
-            .filter(customer -> customer.getId().equals(id))
-            .toList();
-        return ResponseEntity.ok(customers.get(0));
+    @PreAuthorize("hasRole('USER')") // Chỉ USER được truy cập
+    public ResponseEntity<Customer> getCustomerById(@PathVariable String id) {
+        return ResponseEntity.ok(
+            this.customers.stream()
+                .filter(customer -> customer.getId().equals(id))
+                .findFirst()
+                .orElse(null)
+        );
     }
-
 }

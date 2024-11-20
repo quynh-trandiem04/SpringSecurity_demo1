@@ -11,11 +11,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.config.Customizer;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         UserDetails admin = User.withUsername("quynh")
@@ -35,15 +35,23 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/").permitAll() 
-                .requestMatchers("/customer/**").authenticated() 
+                .requestMatchers("/hello").permitAll() // Không yêu cầu đăng nhập
+                .requestMatchers("/customer/all").hasRole("ADMIN") // Chỉ ADMIN được truy cập
+                .requestMatchers("/customer/*").hasRole("USER") // Chỉ USER được truy cập
+                .anyRequest().authenticated() // Các endpoint khác yêu cầu đăng nhập
             )
-            .formLogin(Customizer.withDefaults()) 
+            .formLogin(form -> form
+                .defaultSuccessUrl("/hello", true) // Sau khi login chuyển tới /hello
+                .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/error") // Trang lỗi cho 403
+            )
             .build();
     }
-    
 }
